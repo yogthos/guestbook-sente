@@ -1,0 +1,42 @@
+body {
+	height: 100%;
+	padding-top: 70px;
+	font: 14px 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	line-height: 1.4em;
+	background: #eaeaea;
+	width: 550px;
+	margin: 0 auto;
+}
+
+.content {
+  background: white;
+  width: 520px;
+  padding: 30px;
+}
+.error {
+	width: 520px;
+	padding: 30px;
+	margin-bottom: 50px;
+	position: relative;
+	background: white;
+}
+ul {
+	list-style: none;
+}
+
+li {
+	position: relative;
+	font-size: 16px;
+	padding: 5px;
+	border-bottom: 1px dotted #ccc;
+}
+
+li:last-child {
+	border-bottom: none;
+}
+
+li time {
+	font-size: 12px;
+	padding-bottom: 20px;
+}
+
