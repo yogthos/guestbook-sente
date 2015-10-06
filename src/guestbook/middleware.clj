@@ -57,10 +57,10 @@
 (defn wrap-formats [handler]
   (wrap-restful-format handler {:formats [:json-kw :transit-json :transit-msgpack]}))
 
+;START:wrap-base
 (defn wrap-base [handler]
   (-> handler
       wrap-dev
-      wrap-formats
       wrap-webjars
       wrap-flash
       (wrap-session {:cookie-attrs {:http-only true}})
@@ -70,3 +70,4 @@
             (dissoc :session)))
       wrap-context
       wrap-internal-error))
+;END:wrap-base
