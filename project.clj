@@ -27,7 +27,8 @@
                  [com.h2database/h2 "1.4.188"]
                  [org.immutant/web "2.1.0"]
                  [org.clojure/tools.reader "0.9.2"]
-                 [org.clojure/clojurescript "1.7.107" :scope "provided"]]
+                 [org.clojure/clojurescript "1.7.107" :scope "provided"]
+                 [com.taoensso/sente "1.7.0-RC1"]]
 
   :min-lein-version "2.0.0"
   :uberjar-name "guestbook.jar"

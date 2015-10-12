@@ -1,40 +1,25 @@
 ;START:ns
 (ns guestbook.routes.ws
-  (:require [compojure.core :refer [GET defroutes]]
-            [taoensso.timbre :as timbre]
-            [immutant.web.async :as async]
-            [cognitect.transit :as transit]
+  (:require [compojure.core :refer [GET POST defroutes]]
             [bouncer.core :as b]
             [bouncer.validators :as v]
-            [guestbook.db.core :as db]))
+            [guestbook.db.core :as db]
+            [taoensso.sente :as sente]
+            [taoensso.sente.server-adapters.immutant
+             :refer [sente-web-server-adapter]]))
 ;END:ns
 
-;START:channels
-(defonce channels (atom #{}))
-;END:channels
-
-;START:connect-disconnect
-(defn connect! [channel]
-  (timbre/info "channel open")
-  (swap! channels conj channel))
-
-(defn disconnect! [channel {:keys [code reason]}]
-  (timbre/info "close code:" code "reason:" reason)
-  (swap! channels #(remove #{channel} %)))
-;END:connect-disconnect
-
-;START:transit
-(defn encode-transit [message]
-  (let [out    (java.io.ByteArrayOutputStream. 4096)
-        writer (transit/writer out :json)]
-    (transit/write writer message)
-    (.toString out)))
-
-(defn decode-transit [message]
-  (let [in (java.io.ByteArrayInputStream. (.getBytes message))
-        reader (transit/reader in :json)]
-    (transit/read reader)))
-;END:transit
+;START:socket
+(let [connection (sente/make-channel-socket!
+                   sente-web-server-adapter
+                   {:user-id-fn (fn [ring-req] (get-in ring-req [:params :client-id]))})]
+  (def ring-ajax-post (:ajax-post-fn connection))
+  (def ring-ajax-get-or-ws-handshake (:ajax-get-or-ws-handshake-fn connection))
+  (def ch-chsk (:ch-recv connection))                       ; ChannelSocket's receive channel
+  (def chsk-send! (:send-fn connection))                    ; ChannelSocket's send API fn
+  (def connected-uids (:connected-uids connection))         ; Watchable, read-only atom
+  )
+;END:socket
 
 ;START:save-message
 (defn validate-message [params]
@@ -50,30 +35,31 @@
     (do
       (db/save-message! message)
       message)))
+
+(defn handle-message! [{:keys [id client-id ?data]}]
+  (when (= id :guestbook/add-message)
+    (let [response (-> ?data
+                       (assoc :timestamp (java.util.Date.))
+                       save-message!)]
+      (if (:errors response)
+        (chsk-send! client-id [:guestbook/error response])
+        (doseq [uid (:any @connected-uids)]
+          (chsk-send! uid [:guestbook/add-message response]))))))
 ;END:save-message
 
-;START:handle-message
-(defn handle-message! [channel message]
-  (let [response (-> message
-                     decode-transit
-                     (assoc :timestamp (java.util.Date.))
-                     save-message!)]
-    (if (:errors response)
-      (async/send! channel (encode-transit response))
-      (doseq [channel @channels]
-        (async/send! channel (encode-transit response))))))
-;END:handle-message
+;START:router
+(defonce router (atom nil))
 
-;START:ws-handler
-(defn ws-handler [request]
-  (async/as-channel
-    request
-    {:on-open    connect!
-     :on-close   disconnect!
-     :on-message handle-message!}))
-;END:ws-handler
+(defn stop-router! []
+  (when-let [stop-f @router] (stop-f)))
+
+(defn start-router! []
+  (stop-router!)
+  (reset! router (sente/start-chsk-router! ch-chsk handle-message!)))
+;END:router
 
 ;START:defroutes
 (defroutes websocket-routes
-           (GET "/ws" [] ws-handler))
+           (GET "/ws" req (ring-ajax-get-or-ws-handshake req))
+           (POST "/ws" req (ring-ajax-post req)))
 ;END:defroutes

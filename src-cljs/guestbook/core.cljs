@@ -45,13 +45,13 @@
        :on-change #(swap! fields assoc :message (-> % .-target .-value))}]]
     [:input.btn.btn-primary
      {:type     :submit
-      :on-click #(ws/send-message! @fields)
+      :on-click #(ws/send-message! [:guestbook/add-message @fields] 8000)
       :value    "comment"}]]])
 ;END:message-form
 
 ;START:response-handler
 (defn response-handler [messages fields errors]
-  (fn [message]
+  (fn [{[_ message] :?data}]
     (if-let [response-errors (:errors message)]
       (reset! errors response-errors)
       (do
@@ -65,8 +65,7 @@
   (let [messages (atom nil)
         errors   (atom nil)
         fields   (atom nil)]
-    (ws/connect! (str "ws://" (.-host js/location) "/ws")
-                 (response-handler messages fields errors))
+    (ws/start-router! (response-handler messages fields errors))
     (get-messages messages)
     (fn []
       [:div
