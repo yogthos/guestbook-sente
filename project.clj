@@ -25,7 +25,7 @@
                  [migratus "0.8.2"]
                  [conman "0.1.6"]
                  [com.h2database/h2 "1.4.188"]
-                 [org.immutant/web "2.0.2"]
+                 [org.immutant/web "2.1.0"]
                  [org.clojure/tools.reader "0.9.2"]
                  [org.clojure/clojurescript "1.7.107" :scope "provided"]]
 
