@@ -15,7 +15,7 @@
                  [org.webjars/jquery "2.1.4"]
                  [com.taoensso/tower "3.0.2" :exclusions [com.taoensso/encore]]
                  [com.taoensso/timbre "4.1.4"]
-                 [com.fzakaria/slf4j-timbre "0.2.1"]
+                 [com.fzakaria/slf4j-timbre "0.2.2"]
                  [compojure "1.4.0"]
                  [ring-webjars "0.1.1"]
                  [ring/ring-defaults "0.1.5"]
