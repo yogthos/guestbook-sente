@@ -50,13 +50,6 @@
     handler
     {:formats [:json-kw :transit-json :transit-msgpack]}))
 
-(defn print-req [handler]
-  (fn [req]
-    (println "\n\n\n>>>>>>>\n")
-    (clojure.pprint/pprint req)
-    (println "\n\n\n>>>>>>>\n")
-    (handler req)))
-
 ;START:wrap-base
 (defn wrap-base [handler]
   (-> ((:middleware defaults) handler)
@@ -67,7 +60,6 @@
         (-> site-defaults
             (assoc-in [:security :anti-forgery] false)
             (dissoc :session)))
-      print-req
       wrap-context
       wrap-internal-error))
 ;END:wrap-base
