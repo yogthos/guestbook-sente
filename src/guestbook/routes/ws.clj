@@ -4,6 +4,7 @@
             [bouncer.core :as b]
             [bouncer.validators :as v]
             [guestbook.db.core :as db]
+            [mount.core :refer [defstate]]
             [taoensso.sente :as sente]
             [taoensso.sente.server-adapters.immutant
              :refer [sente-web-server-adapter]]))
@@ -12,13 +13,13 @@
 ;START:socket
 (let [connection (sente/make-channel-socket!
                    sente-web-server-adapter
-                   {:user-id-fn (fn [ring-req] (get-in ring-req [:params :client-id]))})]
+                   {:user-id-fn
+                    (fn [ring-req] (get-in ring-req [:params :client-id]))})]
   (def ring-ajax-post (:ajax-post-fn connection))
   (def ring-ajax-get-or-ws-handshake (:ajax-get-or-ws-handshake-fn connection))
-  (def ch-chsk (:ch-recv connection))                       ; ChannelSocket's receive channel
-  (def chsk-send! (:send-fn connection))                    ; ChannelSocket's send API fn
-  (def connected-uids (:connected-uids connection))         ; Watchable, read-only atom
-  )
+  (def ch-chsk (:ch-recv connection))
+  (def chsk-send! (:send-fn connection))
+  (def connected-uids (:connected-uids connection)))
 ;END:socket
 
 ;START:save-message
@@ -37,6 +38,7 @@
       message)))
 
 (defn handle-message! [{:keys [id client-id ?data]}]
+  (println "\n\n+++++++ GOT MESSAGE:" id (keys ?data))
   (when (= id :guestbook/add-message)
     (let [response (-> ?data
                        (assoc :timestamp (java.util.Date.))
@@ -48,14 +50,16 @@
 ;END:save-message
 
 ;START:router
-(defonce router (atom nil))
-
-(defn stop-router! []
-  (when-let [stop-f @router] (stop-f)))
+(defn stop-router! [stop-fn]
+  (when stop-fn (stop-fn)))
 
 (defn start-router! []
-  (stop-router!)
-  (reset! router (sente/start-chsk-router! ch-chsk handle-message!)))
+  (println "\n\n+++++++ STARTING ROUTER! +++++++\n\n")
+  (sente/start-chsk-router! ch-chsk handle-message!))
+
+(defstate router
+  :start (start-router!)
+  :stop (stop-router! router))
 ;END:router
 
 ;START:defroutes

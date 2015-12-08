@@ -1,3 +1,4 @@
+;START:ns
 (ns guestbook.core
   (:require [guestbook.handler :refer [app init destroy]]
             [immutant.web :as immutant]
@@ -6,6 +7,7 @@
             [taoensso.timbre :as timbre]
             [environ.core :refer [env]])
   (:gen-class))
+;END:ns
 
 (defonce nrepl-server (atom nil))
 
@@ -33,34 +35,47 @@
              (reset! nrepl-server))
         (timbre/info "nREPL server started on port" port)
         (catch Throwable t
-          (timbre/error "failed to start nREPL" t))))))
+          (timbre/error t "failed to start nREPL"))))))
 
 (defn http-port [port]
   (parse-port (or port (env :port) 3000)))
 
 (defonce http-server (atom nil))
 
+;START:start-server
 (defn start-http-server [port]
   (init)
-  (reset! http-server (immutant/run app :port port)))
+  (reset! http-server (immutant/run app :host "0.0.0.0" :port port)))
+;END:start-server
 
+;START:stop-server
 (defn stop-http-server []
   (when @http-server
     (destroy)
     (immutant/stop @http-server)
     (reset! http-server nil)))
+;END:stop-server
 
+;START:stop-app
 (defn stop-app []
   (stop-nrepl)
-  (stop-http-server))
+  (stop-http-server)
+  (shutdown-agents))
+;END:stop-app
 
+;START:start-app
 (defn start-app [[port]]
   (.addShutdownHook (Runtime/getRuntime) (Thread. stop-app))
   (start-nrepl)
   (start-http-server (http-port port))
   (timbre/info "server started on port:" (:port @http-server)))
+;END:start-app
 
+;START:main
 (defn -main [& args]
   (cond
-    (some #{"migrate" "rollback"} args) (migrations/migrate args)
-    :else (start-app args)))
+    (some #{"migrate" "rollback"} args)
+    (do (migrations/migrate args) (System/exit 0))
+    :else
+    (start-app args)))
+;END:main

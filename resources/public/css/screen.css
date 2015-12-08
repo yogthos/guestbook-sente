@@ -9,11 +9,10 @@ body {
 }
 
 .content {
-  background: white;
-  width: 520px;
-  padding: 30px;
+	background: white;
+	width: 520px;
 }
-.error {
+form, .error {
 	width: 520px;
 	padding: 30px;
 	margin-bottom: 50px;

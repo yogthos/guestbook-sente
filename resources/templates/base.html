@@ -2,26 +2,39 @@
 <html>
   <head>
     <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <META name="viewport" content="width=device-width, initial-scale=1">
     <title>Welcome to guestbook</title>
   </head>
   <body>
-    <!-- navbar -->
-    <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-header">
-          <a class="navbar-brand" href="{{servlet-context}}/">guestbook</a>
+      <!-- navbar -->
+   <div id="navbar">
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+             <button class="navbar-toggle"
+                     data-target="#app-navbar"
+                     data-toggle="collapse"
+                     aria-expanded="false"
+                     aria-controls="navbar">
+                 <span class="sr-only">Toggle Navigation</span>
+                 <span class="icon-bar"></span>
+                 <span class="icon-bar"></span>
+                 <span class="icon-bar"></span>
+             </button>
+             <a href="{{servlet-context}}/" class="navbar-brand">guestbook</a>
+            </div>
+            <div id="app-navbar" class="navbar-collapse collapse">
+             <ul class="nav navbar-nav">
+                <li {% ifequal page "home.html" %} class="active"{%endifequal%}>
+                 <a href="{{servlet-context}}/">Home</a>
+                </li>
+                <li {% ifequal page "about.html" %} class="active"{%endifequal%}>
+                 <a href="{{servlet-context}}/about">About</a>
+                </li>
+              </ul>
+            </div>
         </div>
-        <div class="navbar-collapse collapse ">
-          <ul class="nav navbar-nav">
-            <li {% ifequal page "home.html" %} class="active"{%endifequal%}>
-              <a href="{{servlet-context}}/">Home</a>
-            </li>
-            <li {% ifequal page "about.html" %} class="active"{%endifequal%}>
-              <a href="{{servlet-context}}/about">About</a>
-            </li>
-          </ul>
-        </div>
-      </div>
+     </nav>
     </div>
 
     <div class="container">
@@ -29,17 +42,15 @@
       {% endblock %}
     </div>
     <!-- scripts and styles -->
-    <link rel="stylesheet"
-          href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
+    {% style "/assets/bootstrap/css/bootstrap.min.css" %}
+    {% style "/assets/bootstrap/css/bootstrap-theme.min.css" %}
     {% style "/css/screen.css" %}
 
     <script type="text/javascript">
       var context = "{{servlet-context}}";
     </script>
-
-    {% script "/js/out/goog/base.js" %}
     {% script "/js/app.js" %}
-    <script type="text/javascript">goog.require("guestbook.core");</script>
+    {% block page-scripts %}
+    {% endblock %}
   </body>
 </html>
-

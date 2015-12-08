@@ -2,20 +2,23 @@
 
 ### Database Configuration is Required
 
-Before continuing please follow the steps below to configure your database connection and run the necessary migrations.
+If you haven't already, then please follow the steps below to configure your database connection and run the necessary migrations.
 
-* Run `lein ragtime migrate` in the root of the project to create the tables.
+* Run `lein run migrate` in the root of the project to create the tables.
 * Restart the application.
 
 </div>
 
+
 ### Managing Your Middleware
 
 Request middleware functions are located under the `guestbook.middleware` namespace.
-A request logging helper called `log-request` has already been defined for you there.
 
-This namespace also defines two vectors for organizing the middleware called `development-middleware` and `production-middleware`.
-Any middleware that you only wish to run in development mode, such as `log-request`, should be added to the first vector.
+This namespace is reserved for any custom middleware for the application. Some default middleware is
+already defined here. The middleware is assembled in the `wrap-base` function.
+
+Middleware used for development is placed in the `guestbook.dev-middleware` namespace found in
+the `env/dev/clj/` source path.
 
 ### Here are some links to get started
 

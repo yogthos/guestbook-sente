@@ -1,10 +1,7 @@
 (ns guestbook.db.core
   (:require
-    [clojure.java.jdbc :as jdbc]
     [yesql.core :refer [defqueries]]
-    [taoensso.timbre :as timbre]
-    [environ.core :refer [env]])
-  (:import java.sql.BatchUpdateException))
+    [environ.core :refer [env]]))
 
 (def conn
   {:classname   "org.h2.Driver"
